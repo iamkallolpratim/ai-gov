@@ -1,0 +1,60 @@
+[project]
+name = "ai-gov-console"
+version = "0.1.0"
+description = "AI Governance Console - multi-jurisdictional AI compliance backend"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "sqlalchemy>=2.0.36",
+    "alembic>=1.14.0",
+    "psycopg[binary]>=3.2.3",
+    "asyncpg>=0.30.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "bcrypt==4.0.1",
+    "python-multipart>=0.0.17",
+    "redis>=5.2.0",
+    "celery[redis]>=5.4.0",
+    "httpx>=0.27.2",
+    "boto3>=1.35.0",
+    "reportlab>=4.2.5",
+    "structlog>=24.4.0",
+    "prometheus-client>=0.21.0",
+    "slowapi>=0.1.9",
+    "email-validator>=2.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "ruff>=0.7.0",
+    "mypy>=1.13.0",
+    "faker>=30.0.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+    "opa: requires a reachable OPA server (skipped otherwise)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C4"]
+# Page[T] must stay a Generic subclass: pydantic generic models predate PEP 695 syntax.
+ignore = ["UP046"]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true

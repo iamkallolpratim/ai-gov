@@ -1,0 +1,100 @@
+name: Bug report
+description: Something behaves differently than documented or expected
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug.
+
+        **Do not report security vulnerabilities here.** Follow
+        [SECURITY.md](../blob/main/SECURITY.md) to report them privately instead.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: What did you observe, and what did you expect instead?
+      placeholder: |
+        Calling POST /api/v1/systems/{id}/classify returned EU as applicable for a
+        system deployed only in Brazil. I expected only GLOBAL.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: |
+        The smallest sequence that shows the problem. A `curl` command, a failing test,
+        or the system metadata you used is ideal.
+      placeholder: |
+        1. cp .env.example .env && docker compose up
+        2. curl -X POST localhost:8000/api/v1/systems -d '{...}'
+        3. curl -X POST localhost:8000/api/v1/systems/$ID/classify -d '{}'
+        4. Response contains "EU"
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error output
+      description: |
+        Relevant log lines or the error response. Include the `correlation_id` from the
+        error envelope if you have it. **Redact any real credentials or system data.**
+      render: shell
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area?
+      options:
+        - Inventory (CRUD, search, versioning)
+        - Jurisdiction detection
+        - Risk classification
+        - Policy evaluation / Rego / OPA
+        - Evidence generation (PDF, JSON, S3)
+        - Dashboard
+        - Auth and permissions
+        - Docker / setup
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Release tag, commit SHA, or Docker image tag.
+      placeholder: "0.1.0 / a1b2c3d"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: How are you running it?
+      options:
+        - docker compose (the documented setup)
+        - Local Python with services in Docker
+        - Fully local
+        - Deployed elsewhere
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and this is not a duplicate
+          required: true
+        - label: This is not a security vulnerability (those go through SECURITY.md)
+          required: true
+        - label: I have removed any real credentials or confidential data from this report
+          required: true

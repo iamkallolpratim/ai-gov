@@ -1,0 +1,196 @@
+# Local development stack for the AI Governance Console.
+#
+#   cp .env.example .env && docker compose up --build
+#
+# Every value below can be overridden from a .env file in this directory (Compose
+# loads it automatically) without editing this file. The defaults are development
+# credentials and are safe to commit precisely because they are public — never reuse
+# them anywhere reachable from the internet.
+name: ai-gov
+
+x-app-env: &app-env
+  ENVIRONMENT: ${ENVIRONMENT:-local}
+  DEBUG: ${DEBUG:-true}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  LOG_JSON: ${LOG_JSON:-true}
+  AUTH_DISABLED: ${AUTH_DISABLED:-false}
+  SECRET_KEY: ${SECRET_KEY:-local-dev-secret-change-me}
+  RATE_LIMIT_STORAGE_URI: ${RATE_LIMIT_STORAGE_URI:-}
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: "5432"
+  POSTGRES_USER: ${POSTGRES_USER:-aigov}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aigov}
+  POSTGRES_DB: ${POSTGRES_DB:-aigov}
+  REDIS_URL: redis://redis:6379/0
+  OPA_URL: http://opa:8181
+  S3_ENDPOINT_URL: http://minio:9000
+  S3_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+  S3_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+  S3_BUCKET: ${S3_BUCKET:-aigov-evidence}
+  CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+  SEED_ON_START: ${SEED_ON_START:-true}
+  SYNC_OPA_ON_START: ${SYNC_OPA_ON_START:-true}
+
+x-app-build: &app-build
+  build:
+    context: .
+    dockerfile: docker/Dockerfile
+  restart: unless-stopped
+
+services:
+  # --- infrastructure -------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-aigov}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aigov}
+      POSTGRES_DB: ${POSTGRES_DB:-aigov}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aigov} -d ${POSTGRES_DB:-aigov}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Policy engine. The whole policies/ tree is mounted read-only, so editing a
+  # .rego file and restarting this one service reloads the rules.
+  opa:
+    # Pinned for reproducibility; `latest-rootless` also works.
+    image: openpolicyagent/opa:1.19.1
+    restart: unless-stopped
+    command:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "--log-level=${OPA_LOG_LEVEL:-error}"
+      - "/policies"
+    ports:
+      - "${OPA_PORT:-8181}:8181"
+    volumes:
+      - ./policies:/policies:ro
+
+  minio:
+    # MinIO removed its Docker Hub repository (minio/minio now returns 404), so pull
+    # from quay.io. Pinned: `latest` there has been frozen since this release, and a
+    # floating tag on a discontinued distribution can disappear without notice.
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - miniodata:/data
+
+  # --- application ----------------------------------------------------------
+  # Runs migrations, seeds baseline data and pushes policies to OPA, then serves.
+  api:
+    <<: *app-build
+    environment: *app-env
+    entrypoint: ["/app/docker/entrypoint.sh"]
+    command:
+      ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ./app:/app/app
+      - ./policies:/app/policies
+      - ./alembic:/app/alembic
+      - ./scripts:/app/scripts
+      - ./docker:/app/docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      opa:
+        condition: service_started
+      minio:
+        condition: service_started
+
+  # Generates evidence packages (PDF + JSON) off the request path.
+  worker:
+    <<: *app-build
+    environment: *app-env
+    command:
+      ["celery", "-A", "app.workers.celery_app.celery_app", "worker", "-Q", "aigov", "-l", "info"]
+    healthcheck:
+      test:
+        ["CMD-SHELL", "celery -A app.workers.celery_app.celery_app inspect ping -d celery@$$HOSTNAME"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - ./app:/app/app
+      - ./policies:/app/policies
+    depends_on:
+      api:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Scheduled dashboard cache refresh.
+  beat:
+    <<: *app-build
+    environment: *app-env
+    command: ["celery", "-A", "app.workers.celery_app.celery_app", "beat", "-l", "info"]
+    # beat has no inspectable queue; the image's HTTP healthcheck does not apply to it.
+    healthcheck:
+      disable: true
+    volumes:
+      - ./app:/app/app
+    depends_on:
+      redis:
+        condition: service_healthy
+      worker:
+        condition: service_started
+
+  # --- frontend --------------------------------------------------------------
+  # Also proxies evidence downloads: object-storage URLs are presigned against
+  # http://minio:9000, which only resolves inside this network.
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        # Baked into the browser bundle, so it must be reachable from the host.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      # Server-side calls stay on the compose network.
+      INTERNAL_API_URL: http://api:8000
+    ports:
+      - "${CLIENT_PORT:-3000}:3000"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:
