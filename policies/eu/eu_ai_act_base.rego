@@ -2,9 +2,10 @@
 # EU AI Act — shared helpers
 # Regulation (EU) 2024/1689
 #
-# Vocabulary used by every EU package. Nothing here makes a decision; it only
-# normalises the input document and answers questions the individual policy
-# packages ask ("is this an Annex III use case?", "is oversight documented?").
+# EU-specific vocabulary: scope, Annex III, the Art. 6(3) derogation. Generic
+# helpers (metadata accessors, flags, special-category data, oversight, the
+# finding shape) live in `aigov.common` and are re-exported below under their
+# original names, so the EU packages and their tests did not have to change.
 #
 # Input contract (produced by PolicyService.build_input):
 #
@@ -17,6 +18,7 @@
 # =============================================================================
 package aigov.eu.base
 
+import data.aigov.common
 import rego.v1
 
 # -----------------------------------------------------------------------------
@@ -70,50 +72,55 @@ annex_iii_use_cases := {
 annex_iii_citation := annex_iii_use_cases[use_case]
 
 # -----------------------------------------------------------------------------
-# Normalised metadata accessors
-#
-# Every accessor tolerates a missing key, because inventory records are filled in
-# progressively and a half-complete record must still evaluate rather than error.
+# Re-exported from aigov.common
 # -----------------------------------------------------------------------------
 
-metadata := object.get(input, "metadata", {})
+metadata := common.metadata
 
-use_case := lower(object.get(metadata, "use_case", ""))
+use_case := common.use_case
 
-industry := lower(object.get(metadata, "industry", ""))
+industry := common.industry
 
-autonomy_level := lower(object.get(metadata, "autonomy_level", ""))
+autonomy_level := common.autonomy_level
 
-attributes := object.get(metadata, "attributes", {})
+attributes := common.attributes
 
-data_categories := {lower(c) | some c in object.get(metadata, "data_categories", [])}
+data_categories := common.data_categories
 
-third_party_models := object.get(metadata, "third_party_models", [])
+third_party_models := common.third_party_models
 
-# Boolean metadata flag, defaulting to false when absent.
-flag(name) if object.get(metadata, name, false) == true
+flag(name) if common.flag(name)
 
-# A string field is "documented" when it is present and not blank.
-documented(name) if {
-	value := object.get(metadata, name, null)
-	is_string(value)
-	trim_space(value) != ""
-}
+documented(name) if common.documented(name)
 
-# An attribute flag under metadata.attributes, defaulting to false.
-attribute(name) if object.get(attributes, name, false) == true
+attribute(name) if common.attribute(name)
+
+classified_high_risk if common.classified_high_risk
+
+special_category_data := common.special_category_data
+
+special_categories_present := common.special_categories_present
+
+processes_special_category_data if common.processes_special_category_data
+
+uses_biometrics if common.uses_biometrics
+
+affects_minors if common.affects_minors
+
+high_autonomy if common.high_autonomy
+
+meaningful_human_oversight if common.meaningful_human_oversight
+
+violation(rule_id, article, severity, explanation, remediation) := common.violation(rule_id, article, severity, explanation, remediation)
 
 # -----------------------------------------------------------------------------
-# Risk posture
+# EU risk posture
 # -----------------------------------------------------------------------------
-
-# The console's own classifier already ran; trust its tier.
-classified_high_risk if input.risk_tier in {"high", "prohibited"}
 
 # Independently of the tier, the use case may be listed in Annex III.
 annex_iii_listed if annex_iii_citation
 
-# Treated as high-risk if either signal fires. Kept deliberately broad: it is far
+# Treated as high-risk if any signal fires. Kept deliberately broad: it is far
 # cheaper to document a system that turns out to be limited-risk than to miss one.
 is_high_risk if classified_high_risk
 
@@ -125,68 +132,3 @@ is_high_risk if flag("is_safety_component")
 # narrow procedural task, does not materially influence the outcome, and so on).
 # The derogation only counts when the assessment is documented and registered.
 derogation_claimed if attribute("art_6_3_derogation_documented")
-
-# -----------------------------------------------------------------------------
-# Special category and sensitive data (GDPR Art. 9 shaped)
-# -----------------------------------------------------------------------------
-
-special_category_data := {
-	"biometric",
-	"genetic",
-	"health",
-	"racial_origin",
-	"ethnic_origin",
-	"political_opinions",
-	"religious_beliefs",
-	"trade_union_membership",
-	"sex_life",
-	"sexual_orientation",
-	"criminal_convictions",
-}
-
-special_categories_present := data_categories & special_category_data
-
-processes_special_category_data if count(special_categories_present) > 0
-
-# Biometrics can be declared either as a flag or as a data category.
-uses_biometrics if flag("uses_biometrics")
-
-uses_biometrics if "biometric" in data_categories
-
-affects_minors if flag("affects_minors")
-
-affects_minors if "children" in data_categories
-
-# -----------------------------------------------------------------------------
-# Oversight and autonomy
-# -----------------------------------------------------------------------------
-
-high_autonomy if autonomy_level == "fully_autonomous"
-
-meaningful_human_oversight if {
-	flag("human_oversight_documented")
-	not high_autonomy
-}
-
-# A fully autonomous system can still satisfy Art. 14, but only with a documented
-# stop/override capability — a named reviewer who cannot intervene is not oversight.
-meaningful_human_oversight if {
-	flag("human_oversight_documented")
-	high_autonomy
-	attribute("human_override_capability")
-}
-
-# -----------------------------------------------------------------------------
-# Decision helpers
-#
-# Every rule in every EU package emits this shape, so PolicyService can render
-# results uniformly without knowing which package produced them.
-# -----------------------------------------------------------------------------
-
-violation(rule_id, article, severity, explanation, remediation) := {
-	"rule_id": rule_id,
-	"article": article,
-	"severity": severity,
-	"msg": explanation,
-	"remediation": remediation,
-}

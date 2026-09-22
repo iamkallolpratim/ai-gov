@@ -197,7 +197,7 @@ Policies are Rego, versioned, and stored both on disk and in the database.
    ```rego
    package aigov.br.high_risk
 
-   import data.aigov.eu.base   # or your own base helpers
+   import data.aigov.common    # shared accessors, flags and finding shapes
    import rego.v1
 
    default in_scope := false
@@ -205,8 +205,8 @@ Policies are Rego, versioned, and stored both on disk and in the database.
 
    violations contains v if {
        in_scope
-       not base.flag("human_oversight_documented")
-       v := base.violation(
+       not common.flag("human_oversight_documented")
+       v := common.violation(
            "br.high_risk.art_X.human_oversight",   # stable, greppable rule id
            "Art. X",                               # the citation
            "critical",                             # severity of this finding
@@ -215,6 +215,28 @@ Policies are Rego, versioned, and stored both on disk and in the database.
        )
    }
    ```
+
+   **Law that is not binding yet** uses the readiness helpers in `aigov.common`, so a
+   bill or a not-yet-effective act never reports a current breach:
+
+   ```rego
+   # An enacted act with a known date: a low-severity readiness finding before it,
+   # a real finding at `severity` from that date — no code change on the day.
+   v := common.obligation(
+       "us_co.sb205.impact_assessment", "§ 6-1-1703(3)", "high",
+       "Explanation…", "Remediation…",
+       "2026-06-30T00:00:00Z", "SB 24-205",
+   )
+
+   # A bill still in passage: always a readiness finding.
+   v := common.readiness_violation(
+       "br.pl2338.risk_assessment", "Art. 13", "Explanation…", "Remediation…",
+       "pending", "PL 2338/2023",
+   )
+   ```
+
+   Pin the clock in tests with `with time.now_ns as time.parse_rfc3339_ns("…")` and
+   cover both sides of the effective date.
 
 2. **Write Rego unit tests** in `<name>_test.rego` beside it. Cover the rule firing, the
    rule *not* firing when the obligation is met, and out-of-scope systems.

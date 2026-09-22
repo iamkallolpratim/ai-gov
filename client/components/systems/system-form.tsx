@@ -36,6 +36,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ATTRIBUTE_FLAGS,
+  ATTRIBUTE_FLAG_GROUPS,
   AUTONOMY_LABELS,
   DATA_CATEGORIES,
   GOVERNANCE_CONTROLS,
@@ -490,28 +491,35 @@ export function SystemForm({
               )}
             />
 
-            <div>
-              <p className="mb-3 text-sm font-medium">Evidence of specific obligations</p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {ATTRIBUTE_FLAGS.map((flag) => (
-                  <FormField
-                    key={flag.name}
-                    control={form.control}
-                    name={`attributes.${flag.name}` as const}
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between gap-4 rounded-lg border p-3">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-sm font-medium">{flag.label}</FormLabel>
-                          <FormDescription className="text-xs">{flag.help}</FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch checked={!!field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                ))}
-              </div>
+            <div className="space-y-5">
+              <p className="text-sm font-medium">Evidence of specific obligations</p>
+              {ATTRIBUTE_FLAG_GROUPS.map((group) => (
+                <div key={group.jurisdiction}>
+                  <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {group.label}
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {group.flags.map((flag) => (
+                      <FormField
+                        key={flag.name}
+                        control={form.control}
+                        name={`attributes.${flag.name}` as const}
+                        render={({ field }) => (
+                          <FormItem className="flex items-center justify-between gap-4 rounded-lg border p-3">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-sm font-medium">{flag.label}</FormLabel>
+                              <FormDescription className="text-xs">{flag.help}</FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch checked={!!field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>

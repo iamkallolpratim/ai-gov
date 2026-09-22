@@ -75,3 +75,58 @@ def test_collapse_folds_member_states_into_group():
     assert collapse_regions(EU_MEMBER_STATES | {"IN"}) == ["EU", "IN"]
     assert collapse_regions({"IS", "LI", "NO", *EU_MEMBER_STATES}) == ["EEA"]
     assert collapse_regions({"US-CA", "IN"}) == ["IN", "US-CA"]
+
+
+# ---------------------------------------------------------------------------
+# Canada, Korea, Brazil, UK — added ahead of the new jurisdictions
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("South Korea", "KR"),
+        ("korea", "KR"),
+        ("KOR", "KR"),
+        ("Republic of Korea", "KR"),
+        ("Brasil", "BR"),
+        ("BRA", "BR"),
+        ("England", "GB"),
+        ("GBR", "GB"),
+        ("Quebec", "CA-QC"),
+        ("Québec", "CA-QC"),
+        ("Ontario", "CA-ON"),
+    ],
+)
+def test_new_jurisdiction_aliases(raw: str, expected: str):
+    assert normalize_region(raw) == expected
+
+
+def test_canadian_province_is_not_mistaken_for_california():
+    """Regression: "CA-QC" used to collapse to "CA", i.e. California."""
+    assert normalize_region("CA-QC") == "CA-QC"
+    assert normalize_region("ca-on") == "CA-ON"
+
+
+def test_canada_code_survives_renormalisation():
+    """Regression: the client offers "CA-COUNTRY"; normalising it again gave "CA"."""
+    assert normalize_region("CA-COUNTRY") == "CA-COUNTRY"
+    assert normalize_region(normalize_region("Canada")) == "CA-COUNTRY"
+
+
+def test_province_matches_canada_territory_and_vice_versa():
+    assert regions_intersect(frozenset({"CA-QC"}), frozenset({"CA-COUNTRY"})) == frozenset(
+        {"CA-QC"}
+    )
+    assert "CA-QC" in regions_intersect(frozenset({"CA-COUNTRY"}), frozenset({"CA-QC"}))
+
+
+def test_province_does_not_reach_california():
+    assert not regions_intersect(frozenset({"CA-QC"}), frozenset({"US-CA"}))
+
+
+def test_all_provinces_collapse_to_canada():
+    from app.services.regions import CANADA_SUBDIVISIONS
+
+    assert collapse_regions(CANADA_SUBDIVISIONS) == ["CA-COUNTRY"]
+    assert collapse_regions({"CA-QC"}) == ["CA-QC"]

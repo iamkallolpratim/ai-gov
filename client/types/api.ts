@@ -301,6 +301,12 @@ export interface PolicyViolation {
   severity: PolicySeverity;
   msg: string;
   remediation?: string | null;
+  /** "not_in_force" marks a readiness finding: a bill, or an act before its effective date. */
+  status?: "in_force" | "not_in_force";
+  /** RFC 3339 date the obligation takes effect, or "pending" for a bill with no date. */
+  effective_date?: string;
+  /** The instrument cited, e.g. "SB 24-205" or "PL 2338/2023". */
+  source?: string;
   [key: string]: unknown;
 }
 

@@ -1,4 +1,4 @@
-"""Shared helpers for building EU policy rows in tests."""
+"""Shared helpers for building seeded policy rows in tests."""
 
 from __future__ import annotations
 
@@ -13,11 +13,20 @@ from app.models.policy import Policy
 POLICY_DIR = Path(__file__).resolve().parents[1] / "policies"
 
 
-def make_policies(db: Session, *, keys: set[str] | None = None) -> dict[str, Policy]:
-    """Insert the seeded EU policies, with their real Rego attached."""
+def make_policies(
+    db: Session,
+    *,
+    keys: set[str] | None = None,
+    jurisdictions: set[str] | None = frozenset({"EU"}),
+) -> dict[str, Policy]:
+    """Insert seeded policies with their real Rego attached.
+
+    Defaults to the EU policies, which is what the existing suites exercise. Pass
+    `jurisdictions={"CN"}` (or several) for another regime, or `None` for every one.
+    """
     created: dict[str, Policy] = {}
     for spec in POLICIES:
-        if spec["jurisdiction_code"] != "EU":
+        if jurisdictions is not None and spec["jurisdiction_code"] not in jurisdictions:
             continue
         if keys and spec["key"] not in keys:
             continue

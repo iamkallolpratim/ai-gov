@@ -63,7 +63,11 @@ class TestListFieldParsing:
             monkeypatch.delenv(field, raising=False)
         settings = Settings()
         assert settings.CORS_ORIGINS == ["http://localhost:3000"]
-        assert settings.POLICY_LIBRARY_FILES == ["eu/eu_ai_act_base.rego"]
+        # Shared library first: the EU base imports it, and OPA compiles in push order.
+        assert settings.POLICY_LIBRARY_FILES == [
+            "common/aigov_common.rego",
+            "eu/eu_ai_act_base.rego",
+        ]
 
     def test_every_list_field_is_covered_by_this_test(self):
         """Fail loudly if someone adds a list setting without adding it here."""

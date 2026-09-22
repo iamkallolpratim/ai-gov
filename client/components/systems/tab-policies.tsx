@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ClipboardCheck, Wrench } from "lucide-react";
+import { CalendarClock, ChevronDown, ClipboardCheck, Wrench } from "lucide-react";
 import { useState } from "react";
 
 import { EmptyState, ErrorState, TableSkeleton } from "@/components/shared/states";
@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { usePolicyChecks } from "@/hooks/use-policy-checks";
-import { formatRelative, humanize } from "@/lib/format";
+import { formatDate, formatRelative, humanize } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { PolicyCheck } from "@/types/api";
 
@@ -181,6 +181,12 @@ function CheckRow({ check }: { check: PolicyCheck }) {
                       </Badge>
                     ) : null}
                     <SeverityBadge severity={violation.severity} />
+                    {violation.status === "not_in_force" ? (
+                      <ReadinessBadge
+                        effectiveDate={violation.effective_date}
+                        source={violation.source}
+                      />
+                    ) : null}
                     <code className="text-xs text-muted-foreground">{violation.rule_id}</code>
                   </div>
                   <p className="text-sm leading-relaxed">{violation.msg}</p>
@@ -216,5 +222,26 @@ function CheckRow({ check }: { check: PolicyCheck }) {
         ) : null}
       </Collapsible>
     </Card>
+  );
+}
+
+/**
+ * Marks a finding against an obligation that is not binding yet — a bill, or an act
+ * before its effective date. These arrive as `low` severity and never block compliance;
+ * the badge says why, so a reader does not mistake them for a current breach.
+ */
+function ReadinessBadge({ effectiveDate, source }: { effectiveDate?: string; source?: string }) {
+  const when =
+    !effectiveDate || effectiveDate === "pending"
+      ? "not yet enacted"
+      : `effective ${formatDate(effectiveDate)}`;
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-md border border-transparent bg-status-info px-2 py-0.5 text-xs font-medium text-status-info-foreground"
+      title={source ? `Source: ${source}` : undefined}
+    >
+      <CalendarClock className="h-3.5 w-3.5" aria-hidden />
+      Readiness · {when}
+    </span>
   );
 }

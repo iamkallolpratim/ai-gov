@@ -53,7 +53,6 @@ flowchart LR
 - [Testing](#testing)
 - [Configuration](#configuration)
 - [Operational notes](#operational-notes)
-- [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [Good first issues](#good-first-issues)
 - [License](#license)
@@ -464,6 +463,8 @@ for runtime edits (shared libraries first, then policies — a package importing
 
 ```
 policies/
+  common/
+    aigov_common.rego          shared accessors, flags, finding and readiness helpers
   eu/
     eu_ai_act_base.rego        shared vocabulary — Annex III map, metadata accessors, no decisions
     eu_high_risk.rego          Chapter III Section 2 obligations
@@ -829,39 +830,6 @@ All settings come from the environment (or `.env`) via `pydantic-settings`; see
   so a downloaded package can be proven to match what the platform generated.
 - **Immutability is enforced in the database,** not in the service layer, so it survives
   bugs, migrations and direct SQL access.
-
----
-
-## Roadmap
-
-Rough direction, not commitments. Issues labelled `help wanted` are open for the taking,
-and a thumbs-up on an issue is useful signal about what matters.
-
-### Next
-
-- **Policy coverage beyond the EU** — China (generative AI measures, algorithm filing),
-  California (ADMT notice and opt-out), India (DPDP consent and grievance redressal)
-- **More jurisdictions** — UK, Canada (AIDA), Brazil (LGPD), South Korea, Colorado SB 205
-- **Webhooks** so downstream systems learn when a classification or check result changes
-- **Bulk import** of an existing inventory from CSV or spreadsheet
-- **CI workflow** running lint, tests and `opa test` on every PR
-
-### Later
-
-- **Multi-tenancy** with per-organisation isolation
-- **Policy simulation** — "what would change if this rule shipped?" across the portfolio
-- **Continuous monitoring** with scheduled re-evaluation and drift alerts
-- **Evidence package signing** so a downloaded bundle is verifiable offline
-- **Deployer-side obligations** distinct from provider obligations (EU AI Act Art. 26)
-- **SSO / OIDC** and SCIM provisioning
-- **Reference frontend** — this repository is the backend; the console UI is not built yet
-
-### Under consideration
-
-- Model and dataset cards as first-class inventory objects
-- Integration with model registries (MLflow, SageMaker, Vertex)
-- Natural-language querying of the compliance posture
-- Mapping to ISO/IEC 42001 and the NIST AI Risk Management Framework
 
 ---
 

@@ -97,8 +97,10 @@ class Settings(BaseSettings):
     POLICY_DIR: str = "policies"
     #: Shared helper packages that carry no policy row of their own but must be
     #: loaded into OPA before any policy that imports them.
+    #: Order matters: OPA will not compile a module that calls a function defined in one
+    #: that has not been loaded yet, so the shared library comes first.
     POLICY_LIBRARY_FILES: Annotated[list[str], NoDecode] = Field(
-        default_factory=lambda: ["eu/eu_ai_act_base.rego"]
+        default_factory=lambda: ["common/aigov_common.rego", "eu/eu_ai_act_base.rego"]
     )
 
     # --- Object storage (S3-compatible) ---

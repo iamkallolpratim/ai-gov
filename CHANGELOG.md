@@ -12,6 +12,14 @@ changes are always listed first in a release and marked **BREAKING**.
 
 ### Added
 
+- **Shared policy library and readiness findings.** Generic Rego helpers moved from
+  the EU base into `policies/common/aigov_common.rego` (`aigov.common`) so every
+  jurisdiction can use them; the EU packages are unchanged. New helpers model law that
+  is not binding yet: `readiness_violation` for bills, and `obligation`, which reports
+  a low-severity readiness finding before an act's effective date and a real finding
+  from that date on, with no code change on the day.
+- Evidence flags in the system form are grouped by jurisdiction, and policy findings
+  that are not in force yet carry a "Readiness" badge with their effective date.
 - **Retry for evidence packages.** `POST /api/v1/systems/{id}/evidence/{package_id}/retry`
   re-queues a failed or stalled package with its original options, keeping one record
   per request. The Evidence tab offers Retry on those packages and folds failed
@@ -53,6 +61,11 @@ changes are always listed first in a release and marked **BREAKING**.
 
 ### Fixed
 
+- **Canada and Quebec matched no jurisdiction.** Region normalisation collapsed
+  `CA-QC` to `CA`, which it reads as California, and turned `CA-COUNTRY` — the code the
+  client's own region picker offers — into `CA` as well. Canadian provinces now stay
+  distinct, `CA-COUNTRY` expands to them, and aliases were added for Korea, Brazil,
+  Quebec and the UK nations.
 - **Evidence generation failed intermittently with `[Errno 111] Connection refused`.**
   Worker tasks were declared with `@shared_task`, which resolves its Celery app
   through a thread-local. FastAPI serves sync endpoints from a threadpool, so on any

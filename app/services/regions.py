@@ -48,10 +48,18 @@ EU_MEMBER_STATES: frozenset[str] = frozenset(
 EEA_ONLY_STATES: frozenset[str] = frozenset({"IS", "LI", "NO"})
 EEA_STATES: frozenset[str] = EU_MEMBER_STATES | EEA_ONLY_STATES
 
+#: Canadian provinces and territories (ISO 3166-2:CA). Kept distinct because some rules
+#: are provincial — Quebec's Law 25 applies to Quebec, not to Canada as a whole.
+CANADA_SUBDIVISIONS: frozenset[str] = frozenset(
+    f"CA-{code}"
+    for code in ("AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT")
+)
+
 #: Pseudo-codes that stand for a set of member states.
 REGION_GROUPS: dict[str, frozenset[str]] = {
     "EU": EU_MEMBER_STATES | {"EU"},
     "EEA": EEA_STATES | {"EEA", "EU"},
+    "CA-COUNTRY": CANADA_SUBDIVISIONS | {"CA-COUNTRY"},
 }
 
 # --- aliases ---
@@ -86,9 +94,27 @@ _COUNTRY_ALIASES: dict[str, str] = {
     "US": "US",
     "UNITED KINGDOM": "GB",
     "UK": "GB",
+    "GBR": "GB",
+    "GREAT BRITAIN": "GB",
+    "ENGLAND": "GB",
+    "SCOTLAND": "GB",
+    "WALES": "GB",
+    "NORTHERN IRELAND": "GB",
     "BRAZIL": "BR",
+    "BRASIL": "BR",
+    "BRA": "BR",
+    "SOUTH KOREA": "KR",
+    "KOREA": "KR",
+    "REPUBLIC OF KOREA": "KR",
+    "KOR": "KR",
     "CANADA": "CA-COUNTRY",
     "CAN": "CA-COUNTRY",
+    "CA-COUNTRY": "CA-COUNTRY",
+    "QUEBEC": "CA-QC",
+    "QUÉBEC": "CA-QC",
+    "ONTARIO": "CA-ON",
+    "BRITISH COLUMBIA": "CA-BC",
+    "ALBERTA": "CA-AB",
     "WORLDWIDE": "GLOBAL",
     "GLOBAL": "GLOBAL",
     "ANYWHERE": "GLOBAL",
@@ -132,6 +158,10 @@ def normalize_region(value: str, *, ambiguous_ca: str = DEFAULT_AMBIGUOUS_CA) ->
         return _US_STATE_ALIASES[token]
     if token in _COUNTRY_ALIASES:
         return _COUNTRY_ALIASES[token]
+    # Canadian provinces stay distinct. Without this, "CA-QC" collapsed to "CA", which
+    # this module reads as California, so Quebec matched no jurisdiction at all.
+    if token in CANADA_SUBDIVISIONS:
+        return token
     # "DE-BY" style subdivisions collapse to their country unless we know the state.
     if "-" in token and not token.startswith("US-"):
         head = token.split("-", 1)[0]
@@ -188,7 +218,11 @@ def collapse_regions(codes: Iterable[str]) -> list[str]:
     remaining = set(codes)
     collapsed: list[str] = []
     # Largest group first, so EEA wins over EU when both are fully covered.
-    for group, members in (("EEA", EEA_STATES), ("EU", EU_MEMBER_STATES)):
+    for group, members in (
+        ("EEA", EEA_STATES),
+        ("EU", EU_MEMBER_STATES),
+        ("CA-COUNTRY", CANADA_SUBDIVISIONS),
+    ):
         if not members:
             continue
         # Emit the group when every member is present, or when the group code itself is.

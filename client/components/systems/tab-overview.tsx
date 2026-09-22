@@ -2,7 +2,7 @@ import { Check, ExternalLink, Minus } from "lucide-react";
 
 import { JurisdictionBadge } from "@/components/shared/status-badges";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ATTRIBUTE_FLAGS, AUTONOMY_LABELS, GOVERNANCE_CONTROLS } from "@/lib/constants";
+import { ATTRIBUTE_FLAG_GROUPS, AUTONOMY_LABELS, GOVERNANCE_CONTROLS } from "@/lib/constants";
 import { formatDateTime, humanize } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { AISystem } from "@/types/api";
@@ -154,14 +154,21 @@ export function OverviewTab({ system }: { system: AISystem }) {
           <CardHeader>
             <CardTitle className="text-base">Evidence of obligations</CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
-            {ATTRIBUTE_FLAGS.map((flag) => (
-              <BooleanRow
-                key={flag.name}
-                label={flag.label}
-                help={flag.help}
-                value={Boolean(attributes[flag.name])}
-              />
+          <CardContent className="space-y-4 pt-0">
+            {ATTRIBUTE_FLAG_GROUPS.map((group) => (
+              <div key={group.jurisdiction}>
+                <p className="pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  {group.label}
+                </p>
+                {group.flags.map((flag) => (
+                  <BooleanRow
+                    key={flag.name}
+                    label={flag.label}
+                    help={flag.help}
+                    value={Boolean(attributes[flag.name])}
+                  />
+                ))}
+              </div>
             ))}
           </CardContent>
         </Card>

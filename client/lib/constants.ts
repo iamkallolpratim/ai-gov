@@ -61,6 +61,8 @@ export const REGIONS: { value: string; label: string }[] = [
   { value: "ES", label: "ES — Spain" },
   { value: "BR", label: "BR — Brazil" },
   { value: "CA-COUNTRY", label: "CA-COUNTRY — Canada" },
+  { value: "CA-QC", label: "CA-QC — Quebec" },
+  { value: "KR", label: "KR — South Korea" },
 ];
 
 export const DATA_CATEGORIES: { value: string; label: string; sensitive?: boolean }[] = [
@@ -137,19 +139,48 @@ export const GOVERNANCE_CONTROLS: {
 ];
 
 /** Attribute flags the EU packages read out of `metadata.attributes`. */
-export const ATTRIBUTE_FLAGS: { name: string; label: string; help: string }[] = [
-  { name: "risk_management_system", label: "Risk management system", help: "Art. 9" },
-  { name: "automatic_logging_enabled", label: "Automatic logging enabled", help: "Art. 12" },
-  { name: "instructions_for_use", label: "Instructions for use published", help: "Art. 13" },
-  { name: "accuracy_metrics_declared", label: "Accuracy metrics declared", help: "Art. 15" },
-  { name: "human_review_of_individual_decisions", label: "Individual decision review", help: "Art. 14" },
-  { name: "human_override_capability", label: "Human override capability", help: "Art. 14(4)" },
-  { name: "eu_database_registered", label: "Registered in EU database", help: "Art. 49" },
-  { name: "post_market_monitoring_plan", label: "Post-market monitoring plan", help: "Art. 72" },
-  { name: "fundamental_rights_impact_assessment", label: "Fundamental rights impact assessment", help: "Art. 27" },
-  { name: "special_category_safeguards", label: "Special category safeguards", help: "Art. 10(5)" },
-  { name: "ai_interaction_disclosed", label: "AI interaction disclosed", help: "Art. 50(1)" },
-  { name: "synthetic_content_marked", label: "Synthetic content marked", help: "Art. 50(2)" },
-  { name: "upstream_provider_agreement", label: "Upstream provider agreement", help: "Art. 25" },
-  { name: "gpai_provider_documentation", label: "GPAI provider documentation", help: "Art. 53" },
+export interface AttributeFlag {
+  /** Jurisdiction code the obligation comes from; groups the flag in the form. */
+  jurisdiction: string;
+  name: string;
+  label: string;
+  help: string;
+}
+
+/**
+ * Evidence flags the policy packages read from `metadata.attributes`. Add a regime's
+ * flags here with its jurisdiction code and they appear as their own group.
+ */
+export const ATTRIBUTE_FLAGS: AttributeFlag[] = [
+  { jurisdiction: "EU", name: "risk_management_system", label: "Risk management system", help: "Art. 9" },
+  { jurisdiction: "EU", name: "automatic_logging_enabled", label: "Automatic logging enabled", help: "Art. 12" },
+  { jurisdiction: "EU", name: "instructions_for_use", label: "Instructions for use published", help: "Art. 13" },
+  { jurisdiction: "EU", name: "accuracy_metrics_declared", label: "Accuracy metrics declared", help: "Art. 15" },
+  { jurisdiction: "EU", name: "human_review_of_individual_decisions", label: "Individual decision review", help: "Art. 14" },
+  { jurisdiction: "EU", name: "human_override_capability", label: "Human override capability", help: "Art. 14(4)" },
+  { jurisdiction: "EU", name: "eu_database_registered", label: "Registered in EU database", help: "Art. 49" },
+  { jurisdiction: "EU", name: "post_market_monitoring_plan", label: "Post-market monitoring plan", help: "Art. 72" },
+  { jurisdiction: "EU", name: "fundamental_rights_impact_assessment", label: "Fundamental rights impact assessment", help: "Art. 27" },
+  { jurisdiction: "EU", name: "special_category_safeguards", label: "Special category safeguards", help: "Art. 10(5)" },
+  { jurisdiction: "EU", name: "ai_interaction_disclosed", label: "AI interaction disclosed", help: "Art. 50(1)" },
+  { jurisdiction: "EU", name: "synthetic_content_marked", label: "Synthetic content marked", help: "Art. 50(2)" },
+  { jurisdiction: "EU", name: "upstream_provider_agreement", label: "Upstream provider agreement", help: "Art. 25" },
+  { jurisdiction: "EU", name: "gpai_provider_documentation", label: "GPAI provider documentation", help: "Art. 53" },
 ];
+
+/** Heading shown above each jurisdiction's group of evidence flags. */
+export const OBLIGATION_GROUP_LABELS: Record<string, string> = {
+  EU: "EU AI Act",
+  GLOBAL: "Global baseline",
+  CN: "China",
+  CA: "California",
+  IN: "India",
+};
+
+/** `ATTRIBUTE_FLAGS` grouped by jurisdiction, in first-seen order. */
+export const ATTRIBUTE_FLAG_GROUPS: { jurisdiction: string; label: string; flags: AttributeFlag[] }[] =
+  Array.from(new Set(ATTRIBUTE_FLAGS.map((flag) => flag.jurisdiction))).map((jurisdiction) => ({
+    jurisdiction,
+    label: OBLIGATION_GROUP_LABELS[jurisdiction] ?? jurisdiction,
+    flags: ATTRIBUTE_FLAGS.filter((flag) => flag.jurisdiction === jurisdiction),
+  }));
