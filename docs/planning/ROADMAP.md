@@ -6,6 +6,18 @@ Effort: **S** ≤ 1 day · **M** 2–5 days · **L** 1–3 weeks (one person, pa
 The repo is already public with 3 stars, so "launch" here means the first *announced*
 release, not flipping visibility. Nothing is announced until v0.1 is green.
 
+## Decisions (2026-11-18)
+
+| # | Decision | Choice | Effect on this roadmap |
+|---|---|---|---|
+| D1 | Coverage at launch | **Starter Rego packs for CA, CN, IN before announcing** | 1.11 is a hard v0.1 gate; landing page can claim four enforced regimes ("starter coverage" for non-EU) |
+| D2 | Policy source of truth | **Database; API pushes to OPA** | 1.2: OPA starts with no policy bundle, `policies/` becomes the seed source only; test files never served. Unblocks 2.3 authoring UI |
+| D3 | Object storage | **SeaweedFS, pinned release** | 1.1 |
+| D4 | Live demo | **Shared, read-only, nightly reset; no multi-tenancy** | 1.16 required; 3.4 stays deferred |
+| D5 | Site hosting | **GitHub Pages at `iamkallolpratim.github.io/ai-gov`** (custom domain later via CNAME) | Astro `base: "/ai-gov"` |
+| D6 | Site stack | **Astro + Starlight** | One `site/` project for landing page + docs |
+| D7 | Analytics | **GoatCounter (free hosted, cookieless)**; trivially removable | No VPS dependency for the site |
+
 ---
 
 ## v0.1.0 — Launch-ready (must ship before announcing)
