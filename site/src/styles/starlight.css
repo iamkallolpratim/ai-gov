@@ -1,0 +1,12 @@
+/* Brand accent for the docs, matching the landing page and the console. */
+:root {
+  --sl-color-accent-low: #18263b;
+  --sl-color-accent: #5b8ad6;
+  --sl-color-accent-high: #c9dbf6;
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-low: #dfe8f6;
+  --sl-color-accent: #1d4277;
+  --sl-color-accent-high: #12284a;
+}

@@ -1,0 +1,79 @@
+---
+const services = [
+  { name: 'Next.js console', detail: 'shadcn/ui · TanStack Query', kind: 'ui' },
+  { name: 'FastAPI', detail: '/api/v1 · JWT + RBAC · rate limits', kind: 'core' },
+  { name: 'Celery worker + beat', detail: 'evidence · re-checks · cache', kind: 'core' },
+  { name: 'Open Policy Agent', detail: 'Rego policy packs', kind: 'dep' },
+  { name: 'PostgreSQL 16', detail: 'append-only audit via triggers', kind: 'dep' },
+  { name: 'Redis 7', detail: 'broker · cache · rate-limit store', kind: 'dep' },
+  { name: 'S3-compatible storage', detail: 'evidence PDF + JSON', kind: 'dep' },
+];
+---
+
+<section id="architecture">
+  <div class="wrap grid two">
+    <div>
+      <p class="eyebrow">Architecture</p>
+      <h2>Boring, well-understood parts</h2>
+      <p class="lead">
+        A FastAPI service and a Celery worker over PostgreSQL, Redis, OPA and any S3-compatible
+        store. One <code>docker compose</code> file runs all of it. There is no proprietary runtime
+        and nothing phones home.
+      </p>
+      <ul class="facts">
+        <li>Immutable classifications, policy checks and audit rows, enforced by database triggers</li>
+        <li>Request IDs through API, logs, audit trail and worker tasks</li>
+        <li>Prometheus metrics, liveness and readiness probes, structured JSON logs</li>
+        <li>If OPA is unreachable, checks fall back to declarative rules and record which engine ran</li>
+      </ul>
+    </div>
+    <div class="stack" role="img" aria-label="Architecture: the Next.js console calls the FastAPI service, which uses Open Policy Agent, PostgreSQL, Redis and S3 storage; a Celery worker generates evidence.">
+      {
+        services.map((s) => (
+          <div class={`box ${s.kind}`}>
+            <strong>{s.name}</strong>
+            <span>{s.detail}</span>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .facts {
+    padding-left: 20px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .facts li {
+    margin-bottom: 8px;
+  }
+  .stack {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-content: center;
+  }
+  .box {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .box span {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .box.ui {
+    grid-column: 1 / -1;
+    border-style: dashed;
+  }
+  .box.core {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+</style>

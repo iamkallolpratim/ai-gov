@@ -1,0 +1,33 @@
+---
+import Architecture from '../components/landing/Architecture.astro';
+import Comparison from '../components/landing/Comparison.astro';
+import Contribute from '../components/landing/Contribute.astro';
+import Coverage from '../components/landing/Coverage.astro';
+import Footer from '../components/landing/Footer.astro';
+import Hero from '../components/landing/Hero.astro';
+import HowItWorks from '../components/landing/HowItWorks.astro';
+import Nav from '../components/landing/Nav.astro';
+import Problem from '../components/landing/Problem.astro';
+import Quickstart from '../components/landing/Quickstart.astro';
+import Roadmap from '../components/landing/Roadmap.astro';
+import Landing from '../layouts/Landing.astro';
+---
+
+<Landing
+  title="AI Governance Console: open-source AI compliance as code"
+  description="Self-hosted AI governance for the EU AI Act, California ADMT, China's generative AI measures and India's DPDP Act. Inventory, jurisdiction detection, risk classification, OPA policy checks and evidence packages."
+>
+  <Nav />
+  <main>
+    <Hero />
+    <Problem />
+    <Coverage />
+    <HowItWorks />
+    <Architecture />
+    <Quickstart />
+    <Comparison />
+    <Roadmap />
+    <Contribute />
+  </main>
+  <Footer />
+</Landing>

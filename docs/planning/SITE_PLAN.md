@@ -1,6 +1,6 @@
 # Phase 3 proposal: landing site + docs
 
-Status: **proposal, awaiting approval.** Nothing under `site/` exists yet.
+Status: **approved 2026-11-18, scaffolded** on branch `feat/site`.
 Decisions D5–D7 in [ROADMAP.md](ROADMAP.md) apply.
 
 ## Why Astro + Starlight

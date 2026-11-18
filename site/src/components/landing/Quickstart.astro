@@ -1,0 +1,58 @@
+---
+import { href } from '../../lib/site';
+
+const commands = `git clone https://github.com/iamkallolpratim/ai-gov.git && cd ai-gov
+cp .env.example .env
+docker compose up --build`;
+---
+
+<section id="quickstart" class="alt">
+  <div class="wrap grid two">
+    <div>
+      <p class="eyebrow">Quickstart</p>
+      <h2>Three commands, then open localhost:3000</h2>
+      <p class="lead">
+        You need Docker with Compose v2. On first boot the API migrates the database, seeds four
+        jurisdictions, the policy packs and four example AI systems, and loads the policies into OPA.
+      </p>
+      <p>
+        Sign in as <code>admin@aigov.example.com</code> with password <code>ChangeMe123!</code>. These
+        are public development credentials, and the server refuses to start in staging or
+        production while they are still in place.
+      </p>
+      <p><a href={href('docs/quickstart/')}>Full quickstart →</a> · <a href={href('docs/self-hosting/')}>Self-hosting →</a></p>
+    </div>
+    <div class="term">
+      <pre class="code"><code>{commands}</code></pre>
+      <table class="ports">
+        <tbody>
+          <tr><td>Console</td><td><code>http://localhost:3000</code></td></tr>
+          <tr><td>API docs</td><td><code>http://localhost:8000/docs</code></td></tr>
+          <tr><td>Readiness</td><td><code>http://localhost:8000/ready</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<style>
+  p {
+    color: var(--muted);
+  }
+  .term {
+    align-self: center;
+  }
+  .ports {
+    min-width: 0;
+    margin-top: 14px;
+    font-size: 14px;
+  }
+  .ports td {
+    padding: 6px 0;
+    border: 0;
+  }
+  .ports td:first-child {
+    color: var(--muted);
+    width: 110px;
+  }
+</style>

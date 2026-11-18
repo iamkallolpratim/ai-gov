@@ -1,0 +1,41 @@
+---
+title: Contributing
+description: How to contribute code, policies, jurisdictions or regulatory review.
+---
+
+Contributions are welcome, and not only code. If you know a regime well and can tell us
+what a rule gets wrong, that counts as much as a pull request.
+
+The full guide is [CONTRIBUTING.md](https://github.com/iamkallolpratim/ai-gov/blob/production/CONTRIBUTING.md).
+It covers setup, branch naming, commit style, the PR process, and step-by-step guides for
+[adding a jurisdiction](https://github.com/iamkallolpratim/ai-gov/blob/production/CONTRIBUTING.md#adding-a-new-jurisdiction)
+and [adding a policy](https://github.com/iamkallolpratim/ai-gov/blob/production/CONTRIBUTING.md#adding-or-changing-a-policy).
+
+## Development commands
+
+```bash
+make test      # pytest
+make lint      # ruff + mypy
+make fmt       # format and autofix
+make opa-test  # Rego unit tests (needs the opa binary)
+```
+
+## Where help matters most
+
+- **Policy packs** for [California](../regulations/california-admt/),
+  [China](../regulations/china-genai/) and [India](../regulations/india-dpdp/).
+- **New jurisdictions:** Brazil (LGPD), Colorado AI Act, South Korea, UK.
+- **Finding wording:** rewrite any explanation that would not help a compliance officer act.
+- **Region aliases** in `app/services/regions.py`.
+
+Security issues go through [SECURITY.md](https://github.com/iamkallolpratim/ai-gov/blob/production/SECURITY.md),
+never a public issue.
+
+## Working on these docs
+
+The site lives in `site/` (Astro + Starlight). Run it with:
+
+```bash
+make site-openapi        # regenerate site/openapi.json from the FastAPI app
+cd site && npm install && npm run dev
+```

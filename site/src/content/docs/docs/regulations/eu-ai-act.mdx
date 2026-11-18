@@ -1,0 +1,67 @@
+---
+title: EU AI Act
+description: How the console models Regulation (EU) 2024/1689.
+---
+
+| | |
+| --- | --- |
+| Code | `EU` (EU + EEA) |
+| Regulation | EU AI Act, Regulation (EU) 2024/1689 |
+| Strictness | 100 |
+| Policy packages | `aigov.eu.prohibited`, `aigov.eu.high_risk`, `aigov.eu.transparency` |
+
+## Applicability
+
+Deployment, offering, data subjects or data residency anywhere in the EU/EEA, or
+automated consequential decisions about EU residents. Biometric processing, children's data
+and generative AI act as amplifiers.
+
+## Risk tiers
+
+| Tier | Label | Examples from the taxonomy |
+| --- | --- | --- |
+| prohibited | Prohibited practice (Art. 5) | social scoring, subliminal manipulation, workplace emotion recognition, untargeted face scraping, individual predictive policing |
+| high | High-risk (Annex III / Art. 6) | employment screening, credit scoring, biometric identification, law enforcement, critical infrastructure, education assessment, migration, essential services, medical diagnosis; any safety component |
+| limited | Limited risk, transparency (Art. 50) | chatbots, synthetic content |
+| minimal | Minimal risk | everything else |
+
+## What the policies check
+
+### `aigov.eu.high_risk` (Chapter III Section 2)
+
+In scope for Annex III use cases, systems classified high or prohibited, and safety
+components. A documented Art. 6(3) derogation removes the system from scope.
+
+| Article | Check | Severity |
+| --- | --- | --- |
+| Art. 9 | risk management system exists | critical |
+| Art. 10 | training, validation and test data documented | high |
+| Art. 10(5) | safeguards where special-category data is processed | critical |
+| Art. 11 | Annex IV technical documentation recorded | critical |
+| Art. 12 | automatic logging enabled | high |
+| Art. 13 | instructions for use published | medium |
+| Art. 14 | human oversight documented, effective for autonomous systems, individual review route | critical / high |
+| Art. 15 | accuracy metrics declared; adversarial robustness tested for biometrics | high |
+| Art. 25 | written agreement with upstream model providers | medium |
+| Art. 27 | fundamental rights impact assessment where required | high |
+| Art. 43 | conformity assessment completed | critical |
+| Art. 49 | Annex III system registered in the EU database | high |
+| Art. 72 / 73 | post-market monitoring plan; serious-incident reporting | medium / high |
+
+Annex III use cases are mapped by point, so an employment screener is told it falls under
+"Annex III(4), recruitment and selection of natural persons" rather than a generic "high-risk".
+
+### `aigov.eu.prohibited` (Art. 5)
+
+Flags prohibited practices from the use case and metadata signals.
+
+### `aigov.eu.transparency` (Art. 50)
+
+Disclosure duties for systems that interact with people or generate synthetic content,
+plus the downstream side of Art. 53: a system built on general-purpose models must have the
+provider's technical documentation and training-content summary on record.
+
+## Not yet modelled
+
+The GPAI provider obligations themselves (Art. 53–55, including systemic-risk models) and
+a full Annex III walk-through are planned for v0.2.

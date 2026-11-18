@@ -1,0 +1,45 @@
+---
+title: Introduction
+description: What the AI Governance Console is, who it is for, and where to start.
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+The AI Governance Console is an open-source, self-hosted system that treats AI compliance as
+software. It keeps an **inventory** of your AI systems, works out **which jurisdictions
+apply and why**, **classifies risk** under each one, **evaluates** every system against
+machine-readable policies in Open Policy Agent, and produces **audit-ready evidence
+packages**. An append-only trail sits behind every decision.
+
+It models four regimes today: the **EU AI Act**, **California's ADMT rules**, **China's
+generative AI measures** and **India's DPDP Act**, plus an organisation-wide baseline.
+
+:::caution[Not legal advice]
+The console helps you *track and document* compliance work. It does not certify compliance
+with any regulation. Every finding cites its source so a qualified person can verify it.
+:::
+
+## Who it is for
+
+<CardGrid>
+  <Card title="Compliance and risk teams" icon="document">
+    One inventory, one place to see which obligations apply to which system, and evidence you
+    can hand to an auditor.
+  </Card>
+  <Card title="Platform and ML engineers" icon="laptop">
+    Rules are Rego files with unit tests, reviewed in pull requests like any other code. The
+    REST API is fully documented.
+  </Card>
+  <Card title="Regulatory specialists" icon="open-book">
+    Jurisdictions and rules are data plus tests. You can add one without touching application code.
+  </Card>
+</CardGrid>
+
+## Start here
+
+<CardGrid>
+  <LinkCard title="Quickstart" description="Run the full stack locally with Docker." href="quickstart/" />
+  <LinkCard title="How it works" description="From system metadata to cited findings." href="concepts/how-it-works/" />
+  <LinkCard title="Writing Rego policies" description="The decision contract and shared helpers." href="policies/writing-rego/" />
+  <LinkCard title="API reference" description="Generated from the FastAPI OpenAPI schema." href="api/" />
+</CardGrid>

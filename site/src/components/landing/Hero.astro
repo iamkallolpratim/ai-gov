@@ -1,0 +1,60 @@
+---
+import { Image } from 'astro:assets';
+import screenshot from '../../assets/console-dashboard.png';
+import { DEMO_URL, href, REPO_URL } from '../../lib/site';
+---
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Open source · Apache 2.0 · Self-hosted</p>
+    <h1>Know which AI rules apply. Prove you follow them.</h1>
+    <p class="lead">
+      AI Governance Console keeps an inventory of your AI systems, works out which regimes apply and
+      why, classifies risk under each one, checks every system against policy-as-code in Open Policy
+      Agent, and generates audit-ready evidence on demand.
+    </p>
+    <div class="btn-row">
+      <a class="btn primary" href={REPO_URL}>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
+          ><path
+            d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"
+          ></path></svg
+        >
+        Star on GitHub
+      </a>
+      {DEMO_URL && <a class="btn" href={DEMO_URL}>Try the live demo</a>}
+      <a class="btn" href={href('docs/quickstart/')}>Run it locally</a>
+    </div>
+    <figure class="shot">
+      <Image
+        src={screenshot}
+        alt="The console dashboard: compliance status by jurisdiction, risk-tier distribution and recent policy failures."
+        widths={[640, 1024, 1440]}
+        sizes="(max-width: 1120px) 100vw, 1120px"
+        loading="eager"
+      />
+    </figure>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding: 72px 0 56px;
+  }
+  .hero h1 {
+    max-width: 860px;
+  }
+  .shot {
+    margin: 48px 0 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px -24px rgb(0 0 0 / 0.25);
+    background: var(--surface);
+  }
+  .shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+</style>

@@ -1,0 +1,65 @@
+---
+import { REPO_URL } from '../../lib/site';
+
+const phases = [
+  {
+    tag: 'v0.1',
+    title: 'Launch',
+    items: ['One-command setup with prebuilt images', 'Starter policy packs for California, China and India', 'CI on every pull request', 'Hosted read-only demo'],
+  },
+  {
+    tag: 'v0.2',
+    title: 'Depth',
+    items: ['Rego editor with a test playground', 'Signed evidence bundles and audit export', 'API keys and webhooks', '`aigov` CLI and generated SDKs'],
+  },
+  {
+    tag: 'v0.3+',
+    title: 'Ecosystem',
+    items: ['GitHub Action policy check on pull requests', 'Model registry imports (MLflow, Hugging Face)', 'LLM gateway hooks', 'Jurisdiction plugins'],
+  },
+];
+---
+
+<section id="roadmap" class="alt">
+  <div class="wrap">
+    <p class="eyebrow">Roadmap</p>
+    <h2>What comes next</h2>
+    <div class="grid three">
+      {
+        phases.map((p) => (
+          <div class="card">
+            <span class="pill">{p.tag}</span>
+            <h3>{p.title}</h3>
+            <ul>
+              {p.items.map((i) => (
+                <li>{i}</li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+    <p class="more"><a href={`${REPO_URL}/blob/production/docs/planning/ROADMAP.md`}>Full roadmap →</a></p>
+  </div>
+</section>
+
+<style>
+  .grid {
+    margin-top: 28px;
+  }
+  h3 {
+    margin-top: 10px;
+  }
+  ul {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  li {
+    margin-bottom: 6px;
+  }
+  .more {
+    margin-top: 20px;
+  }
+</style>

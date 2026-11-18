@@ -1,0 +1,6 @@
+dist/
+.astro/
+node_modules/
+# Generated from the FastAPI app by `make site-openapi` (and in CI). Never hand-edited.
+openapi.json
+.DS_Store

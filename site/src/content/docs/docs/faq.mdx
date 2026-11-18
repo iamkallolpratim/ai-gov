@@ -1,0 +1,47 @@
+---
+title: FAQ
+description: Common questions about scope, accuracy, deployment and licensing.
+---
+
+### Is this legal advice?
+
+No. The console helps you track and document compliance work. Classifications and findings
+come from the metadata you supply and the rules configured here. Every finding cites its
+source so a qualified person can verify it before you rely on it.
+
+### Which regulations are covered?
+
+Detection and risk classification cover the EU AI Act, California ADMT, China's generative
+AI measures and India's DPDP Act. Rule-by-rule policy evaluation is deepest for the EU AI
+Act. Starter packs for the other three are on the v0.1 roadmap. See the
+[regulation pages](../regulations/eu-ai-act/).
+
+### Why does a system deployed only in the US show China as applicable?
+
+China's measures reach services that are *accessible* from China or whose output is
+viewable there. If `service_accessible_regions` or `content_accessible_regions` includes
+`GLOBAL`, China applies. Narrow those fields if access is genuinely restricted.
+
+### Does it send data anywhere?
+
+No. Everything runs on your infrastructure, and there is no telemetry.
+
+### Can I add my own rules or jurisdictions?
+
+Yes. Rules are Rego files with tests, and a jurisdiction is data plus tests. See
+[Writing Rego policies](../policies/writing-rego/) and
+[Contributing](../contributing/).
+
+### What happens if OPA is down?
+
+The check falls back to the policy's declarative rules and records `engine: "rules"`. If
+there are none, the check is stored as `error`, never silently dropped.
+
+### Can I run it without authentication?
+
+Only on a private network you control. See
+[authentication modes](../self-hosting/#authentication-modes).
+
+### What licence is it under?
+
+Apache 2.0. Commercial use is fine; keep the copyright and licence notices.
