@@ -1,0 +1,41 @@
+---
+title: China generative AI
+description: How the console models China's generative AI, PIPL and algorithm filing rules.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+| | |
+| --- | --- |
+| Code | `CN` (`PRC`, `CHINA`) |
+| Regulation | Interim Measures for the Management of Generative AI Services; PIPL; algorithm filing rules |
+| Strictness | 90 |
+| Policy packages | none yet: starter pack planned for v0.1 |
+
+<Aside type="caution" title="Detection and classification only">
+China applicability and risk tiers work today. Rule-by-rule policy evaluation is being
+written; until it lands, obligations appear on the classification but are not checked.
+</Aside>
+
+## Applicability
+
+China's reach is the broadest the console models. Beyond deployment, offering, data
+subjects and data residency, a system is in scope when the **service is reachable from
+China** or its **generated content is viewable in China**. Generative AI and biometric
+processing amplify.
+
+## Risk tiers and obligations
+
+| Tier | Label | Obligations attached |
+| --- | --- | --- |
+| prohibited | Prohibited service | untargeted face scraping, social scoring |
+| high | Service with public-opinion attributes | algorithm filing with the CAC; security assessment before public launch; labelling of synthetic media; data localisation for personal information |
+| limited | Filing-only service | algorithm filing; content labelling |
+| minimal | Minimal risk | none |
+
+Every in-scope system is at least *limited*. Generative AI escalates to *high*.
+
+## Help wanted
+
+The starter policy pack (`policies/cn/`) is open for contributors. See
+[Writing Rego policies](../../policies/writing-rego/).

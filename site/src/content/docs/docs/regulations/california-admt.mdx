@@ -1,0 +1,40 @@
+---
+title: California ADMT
+description: How the console models California's automated decision-making rules.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+| | |
+| --- | --- |
+| Code | `CA` (`US-CA`). Bare `CA` means California here; write Canada as `Canada` or `CA-COUNTRY` |
+| Regulation | CCPA/CPRA automated decision-making technology (ADMT) regulations; California AI Transparency Act |
+| Strictness | 70 |
+| Policy packages | none yet: starter pack planned for v0.1 |
+
+<Aside type="caution" title="Detection and classification only">
+California applicability and risk tiers work today. Rule-by-rule policy evaluation is
+being written; until it lands, obligations appear on the classification but are not checked.
+</Aside>
+
+## Applicability
+
+Deployment or users in California, residents as data subjects, data residency, or
+automated consequential decisions about California residents in employment, credit,
+housing, insurance, education or essential services. Children's data amplifies.
+
+## Risk tiers and obligations
+
+| Tier | Label | Obligations attached |
+| --- | --- | --- |
+| high | Significant-decision ADMT | pre-use notice to consumers; opt-out and human appeal route; annual risk assessment filed with the CPPA |
+| limited | Disclosure-required AI | disclose that content or interaction is AI-generated |
+| minimal | Minimal risk | none |
+
+High tier: employment screening, credit scoring, essential services, education assessment.
+Systems that make automated decisions are raised to at least *limited*.
+
+## Help wanted
+
+The starter policy pack (`policies/ca/`) is open for contributors. See
+[Writing Rego policies](../../policies/writing-rego/).

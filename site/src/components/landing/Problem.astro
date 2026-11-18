@@ -1,0 +1,42 @@
+<section class="alt">
+  <div class="wrap grid two">
+    <div>
+      <p class="eyebrow">The problem</p>
+      <h2>Four regimes, one spreadsheet, always out of date</h2>
+      <p>
+        The EU AI Act, California's automated-decision rules, China's generative AI measures and
+        India's DPDP Act each have their own triggers, risk tiers and obligations, and many of them
+        reach systems that are never deployed in that country. Most teams track this by hand. The
+        spreadsheet goes stale the moment a model, a market or a data flow changes, and nobody can
+        say why a system was rated the way it was.
+      </p>
+    </div>
+    <div>
+      <p class="eyebrow">The approach</p>
+      <h2>Treat compliance as software</h2>
+      <ul class="points">
+        <li><strong>Inventory</strong> with full version history, so every rating is tied to the metadata it was computed from.</li>
+        <li><strong>Explained detection</strong>: each regime that applies comes with plain-language reasons and machine-readable signals.</li>
+        <li><strong>Policy as code</strong>: Rego rules with article citations, severity and a concrete fix for every finding.</li>
+        <li><strong>Evidence on demand</strong>: a PDF report and a checksummed JSON manifest, backed by an append-only audit trail.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  p {
+    color: var(--muted);
+  }
+  .points {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--muted);
+  }
+  .points li {
+    margin-bottom: 10px;
+  }
+  .points strong {
+    color: var(--text);
+  }
+</style>

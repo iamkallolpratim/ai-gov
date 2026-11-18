@@ -1,0 +1,23 @@
+{
+  "name": "ai-gov-site",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Landing page and documentation for the AI Governance Console",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "og": "node scripts/render-og.mjs",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.43.1",
+    "astro": "^7.4.1",
+    "sharp": "^0.35.5",
+    "starlight-openapi": "^0.27.1"
+  },
+  "engines": {
+    "node": ">=22.23.4"
+  }
+}

@@ -1,4 +1,4 @@
-.PHONY: up down logs migrate seed test test-opa opa-test opa-fmt lint fmt worker api
+.PHONY: up down logs migrate seed test test-opa opa-test opa-fmt lint fmt worker api site-openapi
 
 up:
 	docker compose up --build -d
@@ -44,3 +44,7 @@ lint:
 
 fmt:
 	ruff check --fix app tests && ruff format app tests
+
+# Export the FastAPI OpenAPI schema for the docs site (no services needed).
+site-openapi:
+	ENVIRONMENT=test python -c "import json; from app.main import app; print(json.dumps(app.openapi(), indent=2))" > site/openapi.json

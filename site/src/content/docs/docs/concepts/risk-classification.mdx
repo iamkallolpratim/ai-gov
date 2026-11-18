@@ -1,0 +1,41 @@
+---
+title: Risk classification
+description: Baseline scoring and per-jurisdiction overlays.
+---
+
+## Baseline
+
+`RiskClassificationService` (`app/services/risk.py`) scores each system from 0 to 100:
+
+| Signal | Weight |
+| --- | --- |
+| Processes biometric identifiers | 25 |
+| Acts as a safety component of a product | 25 |
+| Makes automated decisions about individuals | 15 |
+| Affects minors | 15 |
+| Generates synthetic content | 5 |
+| Autonomy: fully autonomous / human-on-the-loop | 20 / 10 |
+| Enumerated high-risk use case (Annex III-shaped) | +30, tier forced to **high** |
+| Enumerated prohibited use case | score 100, tier **prohibited** |
+
+Sensitive data categories (biometric, health, genetic, criminal, children) also contribute.
+Score thresholds: ≥ 100 prohibited, ≥ 50 high, ≥ 20 limited, otherwise minimal.
+
+## Overlays
+
+Each jurisdiction's `risk_taxonomy` re-maps the baseline into its own vocabulary, for example
+the EU's *prohibited / high-risk / limited / minimal* ladder, or China's *filing-only service*.
+A taxonomy can:
+
+- list its own high-risk and prohibited use cases,
+- escalate on a signal (`escalate_if`, e.g. `uses_generative_ai → high` in China),
+- set a floor (`minimum_tier`),
+- attach the obligations that follow from each tier.
+
+Overlays **never downgrade** the baseline.
+
+## History
+
+Every run writes a new immutable `risk_classifications` row recording the
+`metadata_version` it was computed against. The dashboard flags systems whose metadata has
+changed since their last assessment.

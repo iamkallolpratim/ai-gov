@@ -1,0 +1,61 @@
+---
+import { href, REPO_URL } from '../../lib/site';
+const year = new Date().getFullYear();
+---
+
+<footer>
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <strong>AI Governance Console</strong>
+        <p>Open-source AI compliance as code.</p>
+      </div>
+      <nav aria-label="Footer">
+        <a href={href('docs/')}>Docs</a>
+        <a href={href('docs/api/')}>API reference</a>
+        <a href={REPO_URL}>GitHub</a>
+        <a href={`${REPO_URL}/blob/production/SECURITY.md`}>Security</a>
+        <a href={`${REPO_URL}/blob/production/LICENSE`}>Apache 2.0</a>
+      </nav>
+    </div>
+    <p class="legal">
+      This software helps organisations track and document AI compliance work. It is not legal
+      advice and does not certify compliance with any regulation. Have qualified people review
+      results before relying on them. © {year} AI Governance Console contributors.
+    </p>
+  </div>
+</footer>
+
+<style>
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 0 48px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .cols {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .cols strong {
+    color: var(--text);
+  }
+  .cols p {
+    margin: 4px 0 0;
+  }
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+  nav a {
+    color: var(--muted);
+  }
+  .legal {
+    margin-top: 28px;
+    max-width: 760px;
+    font-size: 13px;
+  }
+</style>

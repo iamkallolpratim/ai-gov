@@ -1,0 +1,47 @@
+---
+title: Evidence and audit trail
+description: Evidence packages, immutability guarantees and the audit log API.
+---
+
+## Evidence packages
+
+`POST /api/v1/systems/{id}/evidence` returns `202 Accepted` with a `package_id` and
+`poll_url`. A Celery task then:
+
+1. optionally re-runs policy checks,
+2. assembles the canonical JSON document: system, metadata, classifications with full
+   rationale, policy checks with remediation, optional change history and a summary,
+3. renders a jurisdiction-specific PDF, where EU, California, China and India each get their own
+   title, cited regulation and attestation text,
+4. uploads both to S3 and records presigned URLs plus a SHA-256 checksum.
+
+Poll `GET /api/v1/systems/{id}/evidence/{package_id}` until `status` is `completed` or
+`failed`. A failed or stalled package can be retried with
+`POST .../evidence/{package_id}/retry`. A scheduled task marks packages stuck longer than
+`EVIDENCE_STALE_AFTER_SECONDS` (15 minutes by default) as failed.
+
+## Guarantees
+
+- **Immutable assessments.** `risk_classifications`, `policy_checks` and `audit_logs` are
+  append-only, enforced by PostgreSQL triggers.
+- **Soft deletes.** Users, systems and policies are soft-deleted, and systems can be restored.
+- **Version history.** Every inventory change writes a `system_metadata_versions` snapshot
+  with a field-level diff and the actor.
+- **Request IDs** are accepted or generated per request, attached to every log line and audit
+  entry, returned as `X-Request-ID`, and propagated into Celery tasks.
+
+## Audit log API
+
+`GET /api/v1/audit-logs` (admin only) searches the trail. Filters: `resource_type`,
+`resource_id`, `action`, `actor_id`, `actor_type`, `request_id`, `since`, `until`.
+
+```bash
+# Everything that touched one system
+curl "localhost:8000/api/v1/audit-logs?resource_type=ai_system&resource_id=$SYSTEM" \
+  -H "authorization: Bearer $TOKEN"
+
+# Every action taken while authentication was disabled
+curl "localhost:8000/api/v1/audit-logs?actor_type=system" -H "authorization: Bearer $TOKEN"
+```
+
+There is no update or delete route, and there could not be one: the database refuses it.

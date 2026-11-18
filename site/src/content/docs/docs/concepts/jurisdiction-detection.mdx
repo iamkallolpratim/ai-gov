@@ -1,0 +1,64 @@
+---
+title: Jurisdiction detection
+description: How the engine decides which regimes apply to a system, and why.
+---
+
+`app/services/jurisdiction_engine.py` is deliberately **pure**: no database, no network,
+no clock. It evaluates a set of `JurisdictionRule`s against a `SystemProfile` (a frozen,
+region-normalised snapshot of the metadata).
+
+## Triggers
+
+Every rule lists named triggers. Each trigger is a pure function that returns a reason or
+`None`. There are two kinds:
+
+- **Nexus** triggers establish jurisdiction on their own.
+- **Amplifier** triggers never establish jurisdiction. They only raise confidence and add
+  reasoning once a nexus has fired. Processing biometrics does not pull the EU AI Act over
+  a US-only system.
+
+| Trigger | Kind | Fires when |
+| --- | --- | --- |
+| `deployment_nexus` | nexus | the system runs in the territory |
+| `offering_nexus` | nexus | it is offered or marketed to users there |
+| `data_subject_nexus` | nexus | data subjects are located there |
+| `data_residency_nexus` | nexus | data is stored or processed there |
+| `service_accessibility_nexus` | nexus | the service can be reached from there |
+| `generated_content_accessibility_nexus` | nexus | generative output can be viewed there |
+| `consequential_decision_nexus` | nexus | automated consequential decisions affect residents |
+| `always_applicable` | nexus | the regime is an internal baseline |
+| `biometric_processing`, `childrens_data`, `generative_ai_service` | amplifier | the corresponding metadata is set |
+
+## Shipped rules
+
+| Code | Strictness | Applies when |
+| --- | --- | --- |
+| `EU` | 100 | deployment, offering, data subjects or residency anywhere in the EU/EEA, or consequential decisions about EU residents |
+| `CN` | 90 | the above for China, plus the service is reachable from China or its generated output is viewable there |
+| `CA` | 70 | deployment or users in California, or automated consequential decisions about California residents |
+| `IN` | 60 | users, data subjects or deployment in India |
+| `GLOBAL` | 10 | always: the internal baseline |
+
+**Strictness** sets the evaluation order and decides which regime wins when obligations
+conflict. Ties are real: every code sharing the top strictness must be satisfied.
+
+## Region normalisation
+
+`app/services/regions.py` folds free-form input to canonical codes before any rule sees
+it: `Germany` and `de` become `DE`, `California` and `us_ca` become `US-CA`, `PRC` becomes `CN`, and
+`worldwide` becomes `GLOBAL`. Group codes expand both ways, so a system in `DE` matches the EU set.
+Bare `CA` means California here by an explicit, overridable default. Write Canada as
+`Canada` or `CA-COUNTRY`.
+
+## Reach metadata
+
+Applicability separates where a system is **deployed** from where it is **offered**
+(`offered_in_regions`), where it can be **reached** (`service_accessible_regions`) and
+where its **output** can be viewed (`content_accessible_regions`). Use `GLOBAL` for
+anything on the public internet.
+
+## Dry run
+
+`GET /api/v1/jurisdictions/detect/{system_id}` runs detection without writing anything.
+`POST /api/v1/systems/{id}/classify` runs detection and classification and stores
+immutable rows.

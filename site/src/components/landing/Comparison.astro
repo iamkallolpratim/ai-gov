@@ -1,0 +1,58 @@
+---
+type Cell = 'yes' | 'no' | string;
+const rows: { label: string; sheet: Cell; grc: Cell; us: Cell }[] = [
+  { label: 'Cost', sheet: 'Free', grc: 'Per-seat licence', us: 'Free, Apache 2.0' },
+  { label: 'Runs on your infrastructure', sheet: 'yes', grc: 'Usually SaaS', us: 'yes' },
+  { label: 'Detects which AI regimes apply, with reasons', sheet: 'no', grc: 'Varies', us: 'yes' },
+  { label: 'Rules as versioned, tested code', sheet: 'no', grc: 'Vendor-defined', us: 'yes' },
+  { label: 'Findings cite the article and give a fix', sheet: 'Manual', grc: 'Varies', us: 'yes' },
+  { label: 'Tamper-resistant audit trail', sheet: 'no', grc: 'yes', us: 'yes' },
+  { label: 'Evidence package on demand', sheet: 'Manual', grc: 'yes', us: 'yes' },
+  { label: 'Add your own jurisdiction or rule', sheet: 'yes', grc: 'Feature request', us: 'yes' },
+  { label: 'Broad enterprise GRC beyond AI', sheet: 'no', grc: 'yes', us: 'no' },
+];
+
+const show = (c: Cell) => (c === 'yes' ? '✓' : c === 'no' ? '—' : c);
+const cls = (c: Cell) => (c === 'yes' ? 'yes' : c === 'no' ? 'no' : '');
+---
+
+<section id="compare">
+  <div class="wrap">
+    <p class="eyebrow">Comparison</p>
+    <h2>Where it fits</h2>
+    <p class="lead">
+      This is not a replacement for a full GRC suite. It is the AI-specific layer: detection,
+      classification and evidence, expressed as code your engineers can review.
+    </p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th scope="col"></th><th scope="col">Spreadsheets</th><th scope="col">Commercial GRC suites</th><th scope="col">AI Governance Console</th></tr>
+        </thead>
+        <tbody>
+          {
+            rows.map((r) => (
+              <tr>
+                <th scope="row">{r.label}</th>
+                <td class={cls(r.sheet)}>{show(r.sheet)}</td>
+                <td class={cls(r.grc)}>{show(r.grc)}</td>
+                <td class={cls(r.us)}>{show(r.us)}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<style>
+  .table-scroll {
+    margin-top: 28px;
+  }
+  tbody th {
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 500;
+  }
+</style>

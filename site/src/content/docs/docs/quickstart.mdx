@@ -1,0 +1,108 @@
+---
+title: Quickstart
+description: Run the AI Governance Console locally with Docker Compose and walk the end-to-end flow.
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+You need [Docker](https://docs.docker.com/get-docker/) with Compose v2. Nothing else.
+
+<Aside type="caution" title="Known issue before v0.1">
+The pinned MinIO image in `docker-compose.yml` can no longer be pulled from any registry, so
+a fresh `docker compose up` currently fails at image pull. Replacing it with SeaweedFS is the
+first item on the v0.1 roadmap. Until that lands, see the
+[workaround in self-hosting](../self-hosting/#object-storage).
+</Aside>
+
+<Steps>
+
+1. Clone and configure:
+
+   ```bash
+   git clone https://github.com/iamkallolpratim/ai-gov.git && cd ai-gov
+   cp .env.example .env
+   ```
+
+2. Start everything:
+
+   ```bash
+   docker compose up --build
+   ```
+
+   This starts PostgreSQL, Redis, OPA, object storage, the API, a Celery worker, the
+   scheduler and the web console. On first boot the API runs migrations, seeds
+   jurisdictions, policies and four example AI systems, and loads the policies into OPA.
+
+3. Open the console at **http://localhost:3000** and sign in. All demo accounts use the
+   password `ChangeMe123!`:
+
+   | Email | Role | Can do |
+   | --- | --- | --- |
+   | `admin@aigov.example.com` | admin | everything, including policies and users |
+   | `risk@aigov.example.com` | risk_officer | inventory, classification, checks, evidence |
+   | `viewer@aigov.example.com` | viewer | read-only |
+
+</Steps>
+
+| What | Where |
+| --- | --- |
+| Web console | http://localhost:3000 |
+| API docs (Swagger / ReDoc) | http://localhost:8000/docs, http://localhost:8000/redoc |
+| Readiness probe | http://localhost:8000/ready |
+| OPA | http://localhost:8181 |
+
+<Aside>
+If PostgreSQL or Redis already runs on your machine, ports 5432 or 6379 will clash. Set
+`POSTGRES_PORT=15432` and `REDIS_PORT=16379` in `.env`.
+</Aside>
+
+## Walk the flow with the API
+
+Every `/api/v1` response is wrapped as `{"success": true, "data": ...}`, so the payload is
+under `.data`.
+
+```bash
+API=localhost:8000/api/v1
+TOKEN=$(curl -s $API/auth/login -H 'content-type: application/json' \
+  -d '{"email":"admin@aigov.example.com","password":"ChangeMe123!"}' | jq -r .data.access_token)
+AUTH="authorization: Bearer $TOKEN"
+
+# 1. Register a system
+SYSTEM=$(curl -s -X POST $API/systems -H "$AUTH" -H 'content-type: application/json' -d '{
+  "name": "Loan Decisioning Engine",
+  "description": "Approves or declines consumer loan applications",
+  "status": "active",
+  "system_metadata": {
+    "purpose": "Decide consumer loan applications",
+    "use_case": "credit_scoring",
+    "industry": "fintech",
+    "autonomy_level": "human_on_the_loop",
+    "data_categories": ["personal_data", "financial"],
+    "deployment_regions": ["EU"],
+    "data_subject_regions": ["EU", "IN"],
+    "offered_in_regions": ["EU", "IN"],
+    "service_accessible_regions": ["GLOBAL"],
+    "makes_automated_decisions": true
+  }
+}' | jq -r .data.id)
+
+# 2. Detect jurisdictions and classify risk (writes immutable classification rows)
+curl -s -X POST $API/systems/$SYSTEM/classify -H "$AUTH" \
+  -H 'content-type: application/json' -d '{}' | jq '.data.most_restrictive_tier'
+
+# 3. Evaluate policies through OPA
+curl -s -X POST $API/systems/$SYSTEM/check-policies -H "$AUTH" \
+  -H 'content-type: application/json' -d '{}' | jq '.data.summary'
+
+# 4. Generate an evidence package (202 Accepted, then poll)
+PKG=$(curl -s -X POST $API/systems/$SYSTEM/evidence -H "$AUTH" \
+  -H 'content-type: application/json' -d '{"include_history": true}' | jq -r .data.package_id)
+sleep 3
+curl -s $API/systems/$SYSTEM/evidence/$PKG -H "$AUTH" | jq '.data.status'
+```
+
+## Next steps
+
+- [How it works](../concepts/how-it-works/): the model behind each step.
+- [Self-hosting](../self-hosting/): configuration and production hardening.
+- [Writing Rego policies](../policies/writing-rego/): add or change a rule.

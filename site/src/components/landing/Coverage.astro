@@ -1,0 +1,109 @@
+---
+import { JURISDICTIONS } from '../../lib/jurisdictions';
+import { statsFor, totals } from '../../lib/policy-stats';
+import { href } from '../../lib/site';
+
+const cards = JURISDICTIONS.map((j) => ({ ...j, stats: statsFor(j.policyDir) }));
+const global = statsFor('global');
+const all = totals();
+---
+
+<section id="coverage">
+  <div class="wrap">
+    <p class="eyebrow">Regulation coverage</p>
+    <h2>Four regimes, plus your own baseline</h2>
+    <p class="lead">
+      Every system is checked for applicability under each regime. Where policy packs exist, the
+      system is also evaluated rule by rule. The counts below are read from{' '}
+      <code>policies/</code> when this page is built: {all.rules} rules and {all.tests} Rego tests today.
+    </p>
+    <div class="grid four cards">
+      {
+        cards.map((j) => (
+          <a class="card jur" href={href(j.docs)}>
+            <div class="head">
+              <span class="code">{j.code}</span>
+              {j.stats.rules > 0 ? (
+                <span class="pill">{j.stats.rules} rules</span>
+              ) : (
+                <span class="pill warn">Policy pack in progress</span>
+              )}
+            </div>
+            <h3>{j.name}</h3>
+            <p class="reg">{j.regulation}</p>
+            <dl>
+              <dt>Applies when</dt>
+              <dd>{j.triggers.join(' · ')}</dd>
+              <dt>Risk tiers</dt>
+              <dd>{j.tiers.join(' · ')}</dd>
+              <dt>Strictness</dt>
+              <dd>{j.strictness} / 100</dd>
+            </dl>
+          </a>
+        ))
+      }
+    </div>
+    <p class="note">
+      Plus a <strong>global baseline</strong> ({global.rules} rules) that applies to every system:
+      generative-AI content labelling, notice for automated decisions, and vendor diligence for
+      third-party models. Detection and risk classification work for all four regimes today.
+    </p>
+  </div>
+</section>
+
+<style>
+  .cards {
+    margin-top: 32px;
+  }
+  .jur {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: var(--text);
+    transition: border-color 0.15s;
+  }
+  .jur:hover {
+    border-color: var(--accent);
+  }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .code {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 14px;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  .jur h3 {
+    margin-bottom: 4px;
+  }
+  .reg {
+    font-size: 14px !important;
+    margin-bottom: 14px !important;
+  }
+  dl {
+    margin: auto 0 0;
+    font-size: 14px;
+  }
+  dt {
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+  dd {
+    margin: 2px 0 0;
+  }
+  .note {
+    margin-top: 24px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+</style>

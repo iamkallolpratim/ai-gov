@@ -1,0 +1,42 @@
+---
+import { href, REPO_URL } from '../../lib/site';
+---
+
+<section id="contribute">
+  <div class="wrap grid two">
+    <div>
+      <p class="eyebrow">Contribute</p>
+      <h2>Regulatory knowledge counts as much as code</h2>
+      <p class="lead">
+        If you know a regime well, you can tell us what a rule gets wrong, or add a jurisdiction
+        yourself. That means a detection rule, a risk taxonomy, a Rego pack and tests, with a
+        step-by-step guide in CONTRIBUTING.md.
+      </p>
+      <div class="btn-row">
+        <a class="btn primary" href={href('docs/contributing/')}>Contributing guide</a>
+        <a class="btn" href={`${REPO_URL}/issues?q=is%3Aopen+label%3A%22good+first+issue%22`}>Good first issues</a>
+      </div>
+    </div>
+    <div class="card ideas">
+      <h3>Wanted right now</h3>
+      <ul>
+        <li>Policy packs for California ADMT, China generative AI and India DPDP</li>
+        <li>New jurisdictions: Brazil (LGPD), Colorado AI Act, South Korea, UK</li>
+        <li>Review of finding wording by compliance practitioners</li>
+        <li>Region aliases that users actually type</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ideas ul {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .ideas li {
+    margin-bottom: 8px;
+  }
+</style>

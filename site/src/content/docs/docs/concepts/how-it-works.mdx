@@ -1,0 +1,44 @@
+---
+title: How it works
+description: The compliance model, from inventory to evidence.
+---
+
+```text
+AI system + metadata
+  → jurisdiction detection
+  → risk classification
+  → policy checks in OPA
+  → evidence package (PDF + JSON) and dashboards
+```
+
+The model is a **global baseline plus regional overlays**.
+
+1. **Inventory.** Each AI system has structured metadata: purpose, use case, industry,
+   autonomy level, data categories, and the regions where it is deployed, offered,
+   reachable, and where its data lives. Every change is snapshotted with a field-level
+   diff and the person who made it.
+2. **Jurisdiction detection.** A pure rules engine decides *which* regimes apply and
+   explains why. See [Jurisdiction detection](../jurisdiction-detection/).
+3. **Risk classification.** A baseline 0–100 score is computed once, then re-mapped
+   through each applicable regime's taxonomy. Overlays can only escalate. See
+   [Risk classification](../risk-classification/).
+4. **Policy evaluation.** For each applicable jurisdiction and tier, the matching policies
+   are evaluated in Open Policy Agent. Each finding carries a rule ID, the article it comes
+   from, a severity, an explanation and a remediation. See
+   [Writing Rego policies](../../policies/writing-rego/).
+5. **Evidence.** A Celery task assembles a canonical JSON document and a
+   jurisdiction-specific PDF, stores both in S3 and records a SHA-256 checksum. See
+   [Evidence and audit trail](../evidence-and-audit/).
+
+## Design decisions
+
+- **Checks never fail silently.** If OPA is unreachable, the service falls back to the
+  policy's declarative rules and records `engine: "rules"`. If no rules exist either, the
+  check is stored as `error` rather than dropped.
+- **Overlays only escalate.** A regional taxonomy can raise a tier or set a floor, but it can
+  never lower the baseline, so "most restrictive" holds by construction.
+- **Immutability lives in the database.** Triggers reject `UPDATE` and `DELETE` on
+  classifications, policy checks and audit logs, so the guarantee survives bugs,
+  migrations and direct SQL.
+- **Evidence is content-addressed.** A downloaded package can be proven to match what the
+  platform generated.

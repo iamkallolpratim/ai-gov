@@ -1,0 +1,39 @@
+---
+title: India DPDP
+description: How the console models India's Digital Personal Data Protection Act 2023.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+| | |
+| --- | --- |
+| Code | `IN` (`INDIA`) |
+| Regulation | Digital Personal Data Protection Act 2023; MeitY AI governance guidelines |
+| Strictness | 60 |
+| Policy packages | none yet: starter pack planned for v0.1 |
+
+<Aside type="caution" title="Detection and classification only">
+India applicability and risk tiers work today. Rule-by-rule policy evaluation is being
+written; until it lands, obligations appear on the classification but are not checked.
+</Aside>
+
+## Applicability
+
+Deployment, offering, data subjects or data residency in India. Children's data amplifies.
+
+## Risk tiers and obligations
+
+| Tier | Label | Obligations attached |
+| --- | --- | --- |
+| high | Significant data fiduciary workload | Data Protection Impact Assessment; Data Protection Officer in India; independent data audit |
+| limited | Standard data fiduciary workload | consent notice; grievance redressal mechanism |
+| minimal | Minimal risk | none |
+
+High tier: credit scoring, employment screening, medical diagnosis. Systems affecting
+minors escalate to *high*.
+
+## Help wanted
+
+The starter policy pack (`policies/in/`) is open for contributors. Use the
+`obligation()` helper for duties whose effective date depends on the DPDP Rules. See
+[Writing Rego policies](../../policies/writing-rego/).

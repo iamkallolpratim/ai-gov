@@ -1,0 +1,289 @@
+/* Landing page only. Docs pages use Starlight's theme plus starlight.css. */
+
+:root {
+  --bg: #fbfbfa;
+  --bg-alt: #f2f3f1;
+  --surface: #ffffff;
+  --text: #16181d;
+  --muted: #5a606b;
+  --border: #e1e3e0;
+  --accent: #1d4277;
+  --accent-strong: #15305a;
+  --accent-soft: #e7eef8;
+  --warn: #8a5a00;
+  --warn-soft: #fbf0d9;
+  --code-bg: #14171c;
+  --code-text: #e6e8eb;
+  --radius: 10px;
+  --max: 1120px;
+  --font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1114;
+    --bg-alt: #15181c;
+    --surface: #1a1d22;
+    --text: #e9ebee;
+    --muted: #a0a6b0;
+    --border: #2a2e35;
+    --accent: #8db4ee;
+    --accent-strong: #b5cff5;
+    --accent-soft: #18263b;
+    --warn: #f0c060;
+    --warn-soft: #3a2e14;
+    --code-bg: #0a0c0f;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+}
+
+code,
+pre {
+  font-family: var(--mono);
+}
+
+.wrap {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+@media (min-width: 720px) {
+  .wrap {
+    padding: 0 32px;
+  }
+}
+
+section {
+  padding: 72px 0;
+}
+
+section.alt {
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 8px;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  margin: 0 0 16px;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: clamp(34px, 5.5vw, 56px);
+  letter-spacing: -0.025em;
+}
+
+h2 {
+  font-size: clamp(26px, 3.5vw, 36px);
+}
+
+h3 {
+  font-size: 19px;
+}
+
+.lead {
+  font-size: 19px;
+  color: var(--muted);
+  max-width: 680px;
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: var(--surface);
+}
+
+.btn:hover {
+  border-color: var(--accent);
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  .btn.primary {
+    color: #0c1626;
+  }
+}
+
+.btn.primary:hover {
+  background: var(--accent-strong);
+}
+
+.btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.grid {
+  display: grid;
+  gap: 20px;
+}
+
+/* Grid items default to min-width: auto, which lets long code lines widen the column
+   past the viewport instead of scrolling inside their <pre>. */
+.grid > * {
+  min-width: 0;
+}
+
+@media (min-width: 720px) {
+  .grid.two {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .grid.three {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .grid.four {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1040px) {
+  .grid.four {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+}
+
+.card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.pill {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.pill.warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+pre.code {
+  background: var(--code-bg);
+  color: var(--code-text);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  overflow-x: auto;
+  font-size: 13.5px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 620px;
+  font-size: 15px;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+th {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.yes {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.no {
+  color: var(--muted);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

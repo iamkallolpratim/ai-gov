@@ -1,0 +1,16 @@
+{
+  "name": "rego",
+  "scopeName": "source.rego",
+  "fileTypes": ["rego"],
+  "patterns": [
+    { "name": "comment.line.number-sign.rego", "match": "#.*$" },
+    { "name": "string.quoted.double.rego", "begin": "\"", "end": "\"", "patterns": [{ "name": "constant.character.escape.rego", "match": "\\\\." }] },
+    { "name": "string.quoted.raw.rego", "begin": "`", "end": "`" },
+    { "name": "keyword.control.rego", "match": "\\b(package|import|as|default|if|else|not|some|every|in|contains|with)\\b" },
+    { "name": "constant.language.rego", "match": "\\b(true|false|null)\\b" },
+    { "name": "variable.language.rego", "match": "\\b(input|data)\\b" },
+    { "name": "constant.numeric.rego", "match": "\\b\\d+(\\.\\d+)?\\b" },
+    { "name": "entity.name.function.rego", "match": "\\b[a-zA-Z_][\\w]*(?=\\()" },
+    { "name": "keyword.operator.rego", "match": ":=|==|!=|<=|>=|=|\\||&" }
+  ]
+}

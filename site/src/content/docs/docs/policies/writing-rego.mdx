@@ -1,0 +1,153 @@
+---
+title: Writing Rego policies
+description: The decision contract, the shared aigov.common library, readiness findings and testing.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Policies are [Rego](https://www.openpolicyagent.org/docs/latest/policy-language/) (v1
+syntax), evaluated by Open Policy Agent over its REST Data API. They live under
+`policies/<jurisdiction>/`, next to their unit tests.
+
+```text
+policies/
+  common/aigov_common.rego     shared accessors, flags, finding and readiness helpers
+  eu/eu_ai_act_base.rego       EU vocabulary: Annex III map, scope helpers (no decisions)
+  eu/eu_high_risk.rego         Chapter III Section 2 obligations
+  eu/eu_prohibited.rego        Article 5 prohibited practices
+  eu/eu_transparency.rego      Article 50 transparency duties
+  eu/*_test.rego               Rego unit tests
+  global/global_transparency.rego
+```
+
+## Input document
+
+`PolicyService.build_input` sends every package the same input:
+
+```json
+{
+  "system":       { "id": "…", "name": "…", "status": "active", "metadata_version": 3, "extra": {} },
+  "metadata":     { "use_case": "employment_screening", "attributes": { … }, … },
+  "jurisdiction": "EU",
+  "risk_tier":    "high"
+}
+```
+
+## Decision contract
+
+Each package exposes a `result` document:
+
+```json
+{
+  "allow": false,
+  "decision": "deny",
+  "in_scope": true,
+  "severity": "critical",
+  "rule_ids": ["eu.high_risk.art_14.human_oversight_missing"],
+  "violations": [
+    {
+      "rule_id": "eu.high_risk.art_14.human_oversight_missing",
+      "article": "Art. 14",
+      "severity": "critical",
+      "msg": "No human oversight measures are documented. …",
+      "remediation": "Assign named oversight roles, …"
+    }
+  ]
+}
+```
+
+- `in_scope: false` is a reported pass ("not applicable to this system"), not a silent one.
+- **Severity comes from the finding, not the policy.** `critical`, `high` and `medium`
+  make a denial a `fail`. `low` and `info` produce a `warning`.
+- Every violation must carry `rule_id`, `article`, `severity`, `msg` and `remediation`. The
+  console shows these directly to compliance officers, so write for the person who has to
+  fix the problem.
+
+## A minimal package
+
+```rego
+package aigov.br.high_risk
+
+import data.aigov.common
+import rego.v1
+
+default in_scope := false
+
+in_scope if input.jurisdiction == "BR"
+
+default allow := false
+
+allow if not in_scope
+
+allow if {
+    in_scope
+    count(violations) == 0
+}
+
+violations contains v if {
+    in_scope
+    not common.flag("human_oversight_documented")
+    v := common.violation(
+        "br.high_risk.art_x.human_oversight",   # stable, greppable rule id
+        "Art. X",                               # the citation
+        "critical",
+        "Explanation a compliance officer can act on, citing the article.",
+        "Concrete remediation: the exact thing to go and do.",
+    )
+}
+
+result := {
+    "allow": allow,
+    "in_scope": in_scope,
+    "violations": violations,
+}
+```
+
+`aigov.common` provides normalised accessors (`metadata`, `use_case`, `attributes`,
+`data_categories`, region sets), `flag(name)`, `attribute(name)` and the finding helpers.
+
+## Law that is not in force yet
+
+Use the readiness helpers so a bill or a not-yet-effective act never reports a current breach:
+
+```rego
+# Enacted, with a known date: a low-severity readiness finding before it, a real
+# finding at `severity` from that date, with no code change on the day.
+v := common.obligation(
+    "us_co.sb205.impact_assessment", "§ 6-1-1703(3)", "high",
+    "Explanation…", "Remediation…",
+    "2026-06-30T00:00:00Z", "SB 24-205",
+)
+
+# A bill still in passage: always a readiness finding.
+v := common.readiness_violation(
+    "br.pl2338.risk_assessment", "Art. 13", "Explanation…", "Remediation…",
+    "pending", "PL 2338/2023",
+)
+```
+
+The console labels these findings "Readiness" and shows their effective date.
+
+## Testing
+
+Put tests in `<name>_test.rego` beside the package. Cover the rule firing, the rule not
+firing when the obligation is met, and out-of-scope systems. Pin the clock for readiness
+rules with `with time.now_ns as time.parse_rfc3339_ns("…")`.
+
+```bash
+opa test policies/ -v          # or: make opa-test
+```
+
+`tests/integration/test_opa_live.py` runs the same scenarios through `PolicyService`
+against a live OPA.
+
+## Registering a policy
+
+Add an entry to `POLICIES` in `app/db/seed.py` with `key`, `version`, `severity`,
+`opa_package`, `rego_file` and `applies_to_risk_tiers`. Policies can also be created
+through `POST /api/v1/policies` with `rego_code`.
+
+<Aside type="tip" title="Version, never edit in place">
+Once a policy has evaluated real systems, its stored checks cite that version. Publish a
+new `version` instead of changing the old one, so historical evidence stays meaningful.
+</Aside>

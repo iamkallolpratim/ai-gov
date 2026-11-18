@@ -1,0 +1,114 @@
+---
+title: Self-hosting
+description: Configuration, authentication modes, object storage and a production checklist.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+The stack is eight containers defined in `docker-compose.yml`: `postgres`, `redis`, `opa`,
+object storage, `api`, `worker`, `beat` and `client`. The compose file is built for local
+development: it runs `uvicorn --reload` with source bind-mounts. A production compose file
+is on the v0.1 roadmap.
+
+## Configuration
+
+All settings come from the environment (or `.env`) via pydantic-settings. See
+`app/core/config.py` and `.env.example` for the full list.
+
+| Variable | Default | Notes |
+| --- | --- | --- |
+| `ENVIRONMENT` | `local` | `local` · `test` · `staging` · `production` |
+| `AUTH_DISABLED` | `false` | `true` disables all authentication (see below) |
+| `SECRET_KEY` | `change-me-in-production` | **must** be replaced outside local dev |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | access token lifetime |
+| `REFRESH_TOKEN_EXPIRE_DAYS` | `7` | refresh token lifetime |
+| `CORS_ORIGINS` | `http://localhost:3000` | comma-separated or JSON array |
+| `POSTGRES_*` / `DATABASE_URL` | local defaults | `DATABASE_URL` wins if set |
+| `REDIS_URL` | `redis://localhost:6379/0` | cache, rate limits, Celery broker |
+| `OPA_URL` | `http://localhost:8181` | falls back to declarative rules if down |
+| `S3_ENDPOINT_URL`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | local defaults | any S3-compatible endpoint |
+| `RATE_LIMIT_DEFAULT` | `120/minute` | per token, else per IP |
+| `RATE_LIMIT_LOGIN` | `10/minute` | login and refresh |
+| `RATE_LIMIT_EVIDENCE` | `20/hour` | evidence generation |
+| `RATE_LIMIT_POLICY_CHECK` | `60/hour` | policy evaluation |
+| `SECURITY_HEADERS_ENABLED` | `true` | CSP, nosniff, frame-deny, referrer policy |
+| `SEED_ON_START` / `SYNC_OPA_ON_START` | `true` | first-boot behaviour in `docker/entrypoint.sh` |
+| `SEED_DEMO_USERS` / `SEED_ADMIN_PASSWORD` | unset | demo accounts outside local/test require both |
+
+<Aside type="caution">
+The application **refuses to start** in `staging` or `production` while any published
+example secret is still configured, and the seeder will not create demo accounts there
+unless you opt in with your own password.
+</Aside>
+
+## Authentication modes
+
+**`AUTH_DISABLED=false` (default, recommended).** Every mutating endpoint requires a bearer
+token from `POST /api/v1/auth/login`. Access tokens last 30 minutes and refresh tokens
+7 days. Login and refresh are rate limited, and failed attempts are written to the audit trail.
+
+**`AUTH_DISABLED=true` (private networks only).** No credentials are required. Every request
+runs as a reserved, non-loginable system principal with the **admin** role. The server logs
+a loud warning at startup, `GET /health` reports `"auth_enabled": false`, and audit entries
+are stamped `actor_type=system`.
+
+<Aside type="danger" title="Read before disabling authentication">
+With authentication off, anyone who can reach the port has full administrative control:
+they can read the whole inventory, modify systems and policies, and generate evidence that
+will be presented as authentic. Use it only when the service is reachable solely from a
+private network you enforce (security group, network policy) and authentication already
+happens at the edge.
+</Aside>
+
+### Roles
+
+| Action | admin | risk_officer | viewer |
+| --- | :---: | :---: | :---: |
+| Manage users and policies | ✅ | — | — |
+| Create and edit AI systems | ✅ | ✅ | — |
+| Classify, run policy checks, generate evidence | ✅ | ✅ | — |
+| View everything | ✅ | ✅ | ✅ |
+| View audit logs | ✅ | — | — |
+
+## Object storage
+
+Evidence PDFs and JSON manifests go to any S3-compatible store through boto3. The bucket
+is created on first use. Presigned URLs are signed against `S3_ENDPOINT_URL`. If that
+host is only reachable inside your network (as `http://minio:9000` is in compose), the
+console proxies downloads through its own `/api/evidence/...` route.
+
+**Workaround until v0.1:** the bundled MinIO image is no longer published. Any
+S3-compatible server works in its place. For example, this `compose.override.yml` swaps in
+SeaweedFS:
+
+```yaml
+services:
+  minio:
+    image: chrislusf/seaweedfs:latest   # pin a release tag in real deployments
+    command: ["server", "-dir=/data", "-s3", "-s3.port=9000"]
+    ports: !override
+      - "19000:9000"
+```
+
+```bash
+docker compose -f docker-compose.yml -f compose.override.yml up --build
+```
+
+## Health and operations
+
+- `/health` and `/health/live`: liveness.
+- `/ready` and `/health/ready`: check PostgreSQL, Redis, OPA and storage. Only the
+  database is hard-required, so the endpoint returns `503` only when the database is down.
+- `/metrics`: Prometheus registry.
+- Dashboard aggregates are cached in Redis, invalidated on mutation, and refreshed by Celery beat.
+- Every response carries `X-Request-ID`. The same ID appears in logs and audit entries.
+
+## Production checklist
+
+- Set `ENVIRONMENT=production` and a random `SECRET_KEY` (48+ bytes).
+- Rotate or skip all seeded passwords. Keep `AUTH_DISABLED=false` unless the conditions above hold.
+- Put TLS in front of the API and console, and restrict `CORS_ORIGINS` to the console origin.
+- Point `S3_*` at real storage with server-side encryption.
+- Don't publish PostgreSQL, Redis or OPA ports to the internet.
+- Run at least two workers so evidence generation is not a single point of failure.
+- Run the API without `--reload` and without source bind-mounts.
